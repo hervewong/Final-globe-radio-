@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#0b0e0f"><meta name="color-scheme" content="dark">
+<title>E4RTH R4DIO</title>
+
+<!-- Manifest intégré pour permettre l'installation PWA -->
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22E4RTH%20R4DIO%22%2C%22short_name%22%3A%22EarthRadio%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%230b0e0f%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%3E%3Cpath%20fill%3D%27%2300ff41%27%20d%3D%27M12%202C6.48%202%202%206.48%202%2012s4.48%2010%2010%2010%2010-4.48%2010-10S17.52%202%2012%202zm-1%2017.93c-3.95-.49-7-3.85-7-7.93%200-.62.08-1.21.21-1.79L9%2015v1c0%201.1.9%202%202%202v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55%200%201-.45%201-1V7h2c1.1%200%202-.9%202-2v-.41c2.93%201.19%205%204.06%205%207.41%200%202.08-.8%203.97-2.1%205.39z%27%2F%3E%3C%2Fsvg%3E%27%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
+<style>html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
+:root{--c:#00ff41;--m:#b6ffc8;--bg:#000000;--dim:#0b7a2a;--cr:0,255,65;--mr:182,255,200;--dk:0,12,3;--bk:#020a03;--bk2:#031a08;--hd:#0a3a14;--tn:0,70,22;--tx:var(--c)}
+html.miku{--c:#86cecb;--m:#bec8d1;--dim:#137a7f;--cr:134,206,203;--mr:190,200,209;--dk:8,16,17;--bk:#0b0e0f;--bk2:#14191a;--hd:#373b3e;--tn:19,122,127;--tx:#e12885}
+html.red{--c:#ff0000;--m:#ff3b30;--dim:#8a0000;--cr:255,0,0;--mr:255,59,48;--dk:8,0,0;--bk:#050000;--bk2:#120000;--hd:#2e0000;--tn:70,0,0}   /* iOS StandBy night-mode red: pure red on black, no pink */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:#000;color-scheme:dark}
+body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input{-webkit-user-select:text;user-select:text}
+html,body{margin:0;height:100%;background:radial-gradient(ellipse at center,var(--bk2) 0,var(--bg) 70%);color:var(--tx);font:13px/1.4 "Share Tech Mono",ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
+#rain{position:fixed;inset:0;width:100%;height:100%;opacity:.3;pointer-events:none}
+canvas#g{position:fixed;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+canvas#g:active{cursor:grabbing}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px);z-index:50}
+#top{position:fixed;top:0;left:0;right:0;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;display:flex;gap:10px;align-items:center;z-index:5;pointer-events:none}
+#top>*{pointer-events:auto}
+h1{margin:0;font-size:20px;letter-spacing:.18em;color:#fff;text-shadow:2px 0 var(--m),-2px 0 var(--c);animation:gl 5s infinite steps(1)}
+@keyframes gl{0%,93%,100%{transform:none}94%{transform:translate(3px,0);text-shadow:-4px 0 var(--m),4px 0 var(--c)}96%{transform:translate(-2px,1px)}}
+#q{flex:1;max-width:260px;background:rgba(0,0,0,.8);border:1px solid var(--dim);color:var(--tx);padding:7px 9px;font:inherit;outline:none}
+#q:focus{border-color:var(--c);box-shadow:0 0 10px var(--c)}
+button{background:rgba(0,0,0,.8);border:1px solid var(--dim);color:var(--tx);font:inherit;padding:7px 10px;cursor:pointer}
+button:hover,button:focus-visible{border-color:var(--m);color:#fff;box-shadow:0 0 10px var(--m);outline:none}
+#hud{position:fixed;left:14px;bottom:96px;color:var(--dim);z-index:4;pointer-events:none}
+#hud b{color:var(--tx);font-weight:400}
+#panel{position:fixed;right:12px;top:calc(60px + env(safe-area-inset-top,0px));width:310px;max-height:calc(100% - 190px);overflow:auto;background:rgba(0,0,0,.88);border:1px solid var(--dim);z-index:5;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+#panel h2{margin:0;padding:10px 12px;font-size:13px;font-weight:400;color:var(--m);border-bottom:1px solid var(--dim);position:sticky;top:0;background:var(--bk)}
+.st{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(var(--cr),.12);cursor:pointer}
+.st:hover{background:rgba(var(--cr),.08)}
+.st.on{background:rgba(var(--mr),.14);color:#fff;box-shadow:inset 3px 0 var(--m)}
+.st .t{flex:1;min-width:0}.st .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st .s{color:var(--dim);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st .f{border:0;background:none;padding:2px 4px;color:var(--dim);box-shadow:none}
+.st .f.y{color:var(--m)}
+.empty .cur{animation:blink 1s steps(1) infinite}
+.empty{padding:14px 12px;color:var(--dim)}
+#bgv{position:absolute;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+#bar{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.92);border-top:1px solid var(--c);box-shadow:0 -4px 24px rgba(var(--cr),.2);z-index:6}
+#bf{width:44px;height:44px;padding:0;flex:none;border:0;background:none;box-shadow:none}#bf:hover{border:0;box-shadow:none;color:#fff}#bf:focus-visible{border:0;box-shadow:none;outline:1px dotted var(--c)}#bf.y{color:var(--m)}#bf.y svg{fill:currentColor}
+#sh{width:44px;height:44px;padding:0;flex:none;border:0;background:none;box-shadow:none}#sh:hover{border:0;box-shadow:none;color:#fff}#sh:focus-visible{border:0;box-shadow:none;outline:1px dotted var(--c)}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:none;z-index:15;background:rgba(var(--dk),.95);border:1px solid var(--c);padding:7px 12px;box-shadow:0 0 14px rgba(var(--cr),.4);pointer-events:none;white-space:nowrap}#toast.on{display:block}
+#mus{position:fixed;left:14px;bottom:calc(92px + env(safe-area-inset-bottom,0px));display:none;flex-direction:column;gap:6px;background:rgba(0,0,0,.95);border:1px solid var(--c);padding:10px;z-index:12;min-width:220px;max-width:min(92vw,320px)}
+#mus.on{display:flex}#mq{color:#fff;margin-bottom:2px;overflow-wrap:anywhere}
+#np .k{display:block;max-width:100%;margin-top:3px;padding:2px 8px;min-height:0;font-size:12px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none}
+#play{width:44px;height:44px;border-radius:50%;font-size:16px;padding:0;flex:none}
+#np{flex:1;min-width:0}#np .n{color:#fff;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#np .s{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#st{color:var(--m)}
+#vis{width:110px;height:32px;flex:none}
+
+#tx{position:fixed;inset:0;display:none;place-items:center;z-index:20;background:rgba(0,0,0,.55)}
+#tx.on{display:grid}
+#tx .box{width:min(92vw,380px);border:1px solid var(--c);background:rgba(var(--dk),.96);padding:16px;box-shadow:0 0 30px var(--c);animation:txp 1s infinite alternate;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%)}
+@keyframes txp{from{box-shadow:0 0 10px var(--c)}to{box-shadow:0 0 34px var(--c)}}
+@keyframes cd{to{transform:scaleX(0)}}
+#tx h3{margin:0 0 10px;color:#fff;letter-spacing:.14em;font-size:15px;font-weight:400;animation:gl 3s infinite steps(1)}
+#tx .row{color:var(--dim)}#tx .row b{color:var(--tx);font-weight:400}
+#tx .bt{display:flex;gap:10px;margin-top:14px}#tx .bt button{flex:1;min-height:44px}
+#acc{color:#fff;border-color:var(--c);background:rgba(var(--cr),.15)}
+#tx .tm{height:3px;background:var(--dim);margin-top:12px}#tx .tm i{display:block;height:100%;background:var(--c);transform-origin:left;animation:cd 15s linear forwards}
+h1{cursor:pointer}
+html.miku h1{color:#e12885;--gA:#ff6fb5;--gB:#8f1650;text-shadow:2px 0 var(--gA),-2px 0 var(--gB);animation-name:glm}
+@keyframes glm{0%,93%,100%{transform:none}94%{transform:translate(3px,0);text-shadow:-4px 0 var(--gA),4px 0 var(--gB)}96%{transform:translate(-2px,1px)}}
+html.miku h1.sw{animation:glsw .45s steps(1) 1}@keyframes glsw{0%{transform:translate(3px,0);text-shadow:-4px 0 var(--gA),4px 0 var(--gB)}35%{transform:translate(-3px,1px);text-shadow:4px 0 var(--gA),-4px 0 var(--gB)}70%{transform:translate(2px,-1px)}100%{transform:none}}
+h1{white-space:nowrap;min-width:0;overflow:hidden}
+h1 .gt{margin-left:.55em;color:var(--tx);text-shadow:none}
+h1 .mx{margin-left:.55em;color:var(--tx);text-shadow:none}
+#sat{position:fixed;right:16px;bottom:calc(100px + env(safe-area-inset-bottom,0px));width:104px;height:104px;display:none;z-index:8;pointer-events:none;perspective:420px;filter:drop-shadow(0 0 8px rgba(var(--cr),.6))}
+#sat.on{display:block}#sati{width:100%;height:100%;will-change:transform}
+#sati .leeksvg{display:none}html.miku #sati .satsvg{display:none}html.miku #sati .leeksvg{display:block}
+@media(max-width:559px){#sat{width:84px;height:84px;bottom:calc(36% + 104px + env(safe-area-inset-bottom,0px))}}
+#mn{width:44px;height:44px;padding:0;flex:none;border:0;background:none;box-shadow:none;font-size:24px;line-height:1}
+#mn:hover{border:0;box-shadow:none;color:#fff}#mn:focus-visible{border:0;box-shadow:none;outline:1px dotted var(--c)}
+#menu{top:auto!important;bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+#gpop{position:fixed;right:12px;top:calc(48px + env(safe-area-inset-top,0px));display:none;flex-direction:column;background:rgba(0,0,0,.95);border:1px solid var(--dim);padding:6px;z-index:12;min-width:220px;max-height:calc(100% - 150px);overflow:auto}
+#gpop.on{display:flex}#gpop .gh{color:var(--dim);font-size:11px;padding:2px 6px 6px}
+#gc{display:flex;flex-direction:column;gap:2px}
+#gc button{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;border-color:transparent;background:none;padding:7px 8px;min-height:0}
+#gc button i{font-style:normal;color:var(--dim);font-size:11px;margin-left:12px}
+#gc button.on{color:#fff;border-color:var(--c);background:rgba(var(--cr),.16)}
+#gb.on{border-color:var(--c);box-shadow:0 0 8px rgba(var(--cr),.5);color:#fff}
+#menu{max-height:calc(100% - 150px);overflow:auto}
+#panel{transition:opacity .2s,transform .2s}
+#panel.hide{opacity:0;pointer-events:none;visibility:hidden;transform:translateY(16px)}
+#panel h2{touch-action:none}
+#pt.on{border-color:var(--c);box-shadow:0 0 8px rgba(var(--cr),.4)}
+@media(min-width:560px){#panel h2{cursor:grab}#panel h2::after{content:"::";float:right;color:var(--dim)}}
+@keyframes gfx{0%{transform:none;text-shadow:none}20%{transform:translate(-2px,0) skewX(-6deg);text-shadow:2px 0 var(--m),-2px 0 var(--c)}40%{transform:translate(2px,1px);text-shadow:-2px 0 var(--m),2px 0 var(--c)}60%{transform:translate(-1px,-1px) skewX(4deg);text-shadow:1px 0 var(--m)}80%{transform:translate(1px,0)}100%{transform:none;text-shadow:none}}
+.gfx{animation:gfx .38s steps(4) 1}
+h1::after{content:"_";animation:blink 1s steps(1) infinite}
+@font-face{font-family:R4Pix;src:url(data:font/ttf;base64,...)}
+</style>
+</head>
+<body>
+
+<script>
+// Enregistrement dynamique du Service Worker pour valider l'installation PWA sur Chrome Android
+if ('serviceWorker' in navigator) {
+  const swCode = "self.addEventListener('fetch', e => { e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });";
+  const swBlob = new Blob([swCode], { type: 'text/javascript' });
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+}
+</script>
+
+<!-- Reste de votre code d'origine (votre interface E4RTH R4DIO)... -->
+
+</body>
+</html>
